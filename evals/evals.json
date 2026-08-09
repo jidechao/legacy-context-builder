@@ -1,0 +1,54 @@
+{
+  "skill_name": "legacy-context-builder",
+  "evals": [
+    {
+      "id": 0,
+      "name": "fullbuild",
+      "mode": "首次建设模式",
+      "prompt": "我刚接手 KnowNote 这个项目（在 <REPO>），是一个 Electron 桌面端 RAG 知识库应用（开源 Google NotebookLM 替代）。我想让团队里的 AI 编程助手（Claude Code、Cursor、Codex）能可靠地维护和扩展它。帮我系统地搭一套 AI 上下文工程。",
+      "expected_output": "完整 L1-L4 四层产物：context-gap-report.md、根+模块级 AGENTS.md（CLAUDE.md 为指针桩且桩数=AGENTS.md 数）、runtime-truth.md、conventions 组（含 agent-rules）、dependency-map.md、openwiki/ 代码 wiki（含任务路由表）。codegraph 探测命中并用于 L1/L2。死代码分析正确（ollama v1 死依赖 / RerankCapability 预留）。",
+      "expectations": [
+        "产出 docs/context-gap-report.md 缺口诊断报告",
+        "根目录有 AGENTS.md（唯一来源）且 CLAUDE.md 是 @AGENTS.md 指针桩、不含关键内容",
+        "CLAUDE.md 指针桩数量 == AGENTS.md 数量（含模块级配对）",
+        "正确探测 codegraph 1.5.0 并使用（建 .codegraph 索引或用 codegraph_explore），未降级为纯手工分析",
+        "根 AGENTS.md 技术栈/命令事实准确：包管理是 pnpm（非 npm）、开发命令是 pnpm dev / electron-vite dev",
+        "死代码分析把 ollama-ai-provider v1 判为废弃死依赖，把 RerankCapability/ImageGenerationCapability 判为预留（不误删）",
+        "产出 openwiki/ 代码 wiki，含 quickstart.md 与任务路由表",
+        "gap 报告标记 L4 验证层（测试）为缺失——KnowNote 零测试文件"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "driftcheck",
+      "mode": "巡检/漂移修正模式",
+      "prompt": "KnowNote（在 <REPO>）之前已经搭过一套 AGENTS.md 和文档体系了，但项目一直在改，我怀疑文档跟代码对不上了。帮我做一次上下文巡检，找出过期的地方并修正。",
+      "expected_output": "进入巡检模式（非重建），产出 docs/context-drift-report.md，捕获预设的 7 类漂移（npm→pnpm 命令、provider 3→7、ollama v1/v2、Rerank 预留/已实现、幽灵模块 SearchService、索引指向缺失文件、不存在的 tests/），并就地修正文档。openwiki 按 §9 增量刷新。",
+      "expectations": [
+        "进入巡检模式，产出 docs/context-drift-report.md（而非 context-gap-report.md 重建报告）",
+        "漂移报告捕获命令漂移：文档写 npm run dev，实际是 pnpm dev",
+        "漂移报告捕获 provider 数量漂移：文档称 3 个，实际 7 个内置 provider",
+        "漂移报告捕获 ollama 适配器漂移：v1 已是死依赖，实际用 v2",
+        "漂移报告捕获 RerankCapability 漂移：文档称已实现，实为预留未实现",
+        "漂移报告捕获幽灵模块：文档引用不存在的 SearchService",
+        "就地修正了过期文档（不只是出报告）",
+        "若有 openwiki，按 §9 纪律增量刷新（读 .last-update.json 取 gitHead 算变更窗口）"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "quickpath",
+      "mode": "L1+L3 快速路径（范围受控）",
+      "prompt": "接手了 KnowNote（在 <REPO>），但我时间有限，不想搞全套四层上下文工程。先用最快见效的方式：帮我清理死代码 + 搭好 AGENTS.md 骨架（L1+L3 快速路径），规范和测试以后再说。",
+      "expected_output": "尊重快速路径范围：完成 L1（死代码+依赖图）+ L3（AGENTS.md 骨架+CLAUDE.md 桩+代码 wiki），未强行做完整 L2 规范组或 L4 测试工程（或明确标注为后续阶段）。Phase 0 给出范围选择并选了快速路径。codegraph 用于 L1。",
+      "expectations": [
+        "尊重范围：完成 L1（死代码/依赖图）+ L3（AGENTS.md 骨架 + CLAUDE.md 指针桩 + 代码 wiki）",
+        "不过度产出：未强行生成完整 L2 conventions 组或 L4 测试工程，或明确标注为后续阶段",
+        "Phase 0 显式给出建设范围选择（全量 vs 快速路径）并采纳快速路径",
+        "L1 正确使用 codegraph（探测命中）",
+        "死代码分析正确：ollama-ai-provider v1 死依赖、RerankCapability 预留",
+        "产出根 AGENTS.md + CLAUDE.md 指针桩（配对）"
+      ]
+    }
+  ]
+}

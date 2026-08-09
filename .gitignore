@@ -1,0 +1,11 @@
+# oh-my-claudecode (OMC) session/state files — machine-local, never commit
+.omc/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor cruft
+.idea/
+.vscode/
+*.swp
