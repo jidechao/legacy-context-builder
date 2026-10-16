@@ -1,6 +1,6 @@
 ---
 name: legacy-context-builder
-description: 为老项目 / 历史遗留（legacy / 屎山）项目系统性构建 AI 上下文工程，使其变为 Claude Code、Codex、Cursor 等 Coding Agent 可维护的系统；也用于已有 AGENTS.md/文档的项目做过期巡检与漂移修正（知识保鲜）。四层模型：代码层（死代码/幽灵代码识别与架构瘦身）→ 规范层（接口契约与模块边界）→ 知识层（AGENTS.md 分层体系）→ 验证层（自动化测试与 MR 门禁），并在规范层内置 Karpathy AI 编码规则作为代理行为准则（生成 `docs/conventions/agent-rules.md` 并接入根 AGENTS.md）；以 AGENTS.md 为唯一上下文来源、CLAUDE.md 仅作 `@AGENTS.md` 导入桩（兼容 Codex/Cursor 等非 Claude Agent）。当用户接手缺文档的老项目、想让 AI 帮忙维护但 AI 频繁误改、需要给 AI 补足上下文、梳理哪些代码是死的（看着有引用其实运行时不可达）、搭建多 Agent/多人通用的项目知识体系，或怀疑现有上下文文档与代码脱节时，都应使用本 skill——即使没有明说"构建上下文"也适用。区别于：从零搭建新项目、单点重构某个函数、或单纯跑 knip/depcheck。触发词：老项目、遗留项目、屎山、接手老项目、历史债、给 AI 补上下文、AI 上下文工程、AGENTS.md、幽灵代码、死代码梳理、上下文过期、文档和代码对不上。
+description: 为老项目 / 历史遗留（legacy / 屎山）项目系统性构建 AI 上下文工程，使其变为 Claude Code、Codex、Cursor 等 Coding Agent 可维护的系统；也用于已有 AGENTS.md/文档的项目做过期巡检、漂移修正与指令瘦身（知识保鲜：防治只增不减的上下文膨胀）。四层模型：代码层（死代码/幽灵代码识别与架构瘦身）→ 规范层（接口契约与模块边界）→ 知识层（AGENTS.md 分层体系）→ 验证层（自动化测试与 MR 门禁），并在规范层内置 Karpathy AI 编码规则作为代理行为准则（生成 `docs/conventions/agent-rules.md` 并接入根 AGENTS.md）；以 AGENTS.md 为唯一上下文来源、CLAUDE.md 仅作 `@AGENTS.md` 导入桩（兼容 Codex/Cursor 等非 Claude Agent）。当用户接手缺文档的老项目、想让 AI 帮忙维护但 AI 频繁误改、需要给 AI 补足上下文、梳理哪些代码是死的（看着有引用其实运行时不可达）、搭建多 Agent/多人通用的项目知识体系，或怀疑现有上下文文档与代码脱节时，都应使用本 skill——即使没有明说"构建上下文"也适用。区别于：从零搭建新项目、单点重构某个函数、或单纯跑 knip/depcheck。触发词：老项目、遗留项目、屎山、接手老项目、历史债、给 AI 补上下文、AI 上下文工程、AGENTS.md、幽灵代码、死代码梳理、上下文过期、文档和代码对不上、AGENTS.md 越来越长、上下文臃肿。
 ---
 
 # Legacy Context Builder — 遗留系统 AI 上下文工程构建器
@@ -75,15 +75,20 @@ description: 为老项目 / 历史遗留（legacy / 屎山）项目系统性构�
 
 目标：把隐性团队共识显性化为 AI 可执行的契约。
 
-1. **模块边界梳理**：划分"场景外壳 + 共享能力层"，明确哪些模块禁止隐式状态穿透，产出 `docs/conventions/module-boundaries.md`。
-2. **接口契约提取**：有 codegraph 时基于图谱、无则基于 Grep+Read，梳理模块间通信协议、状态机约定、接口版本，产出 `docs/conventions/contracts.md`。
-3. **编码规范沉淀**：从现存代码中归纳（而非凭空发明）命名约定、目录组织、错误处理模式，产出 `docs/conventions/coding-style.md`。
-4. **代理行为准则落地（Karpathy 编码规则）**：上下文工程解决"AI 看不懂现状"，行为准则解决"AI 守不住纪律"——两者互补，缺一不可。从本 skill 的 [assets/agent-rules.md](assets/agent-rules.md) 取 Karpathy 十条规则，落盘为项目 `docs/conventions/agent-rules.md`，作为 AI 代理行为底线。落地纪律：
-   - **先查后写**：项目若已有等价规则文件（`AGENTS-RULES.md` / `docs/conventions/agent-rules.md` / 根 AGENTS.md 全局规则），**不要覆盖**，改为核对差异、合并补充（沿用本 skill"不就地改非己方文档"的纪律——就地修正非己方产品文档属巡检模式职责，建设期只入报告/新建）。
-   - **保留原文**：默认保留规则正文（权威、可检索）；团队可在各章追加"本项目补充：…"而不要删改原条目。
-   - **速查版入索引**：把十条规则的中文速查精简版写入根 AGENTS.md"全局规则"节，完整版留在 `agent-rules.md`，遵循 Progressive Disclosure（模板见 [references/templates.md](references/templates.md)）。
-5. **规范代码化建议**：能 lint 化的给 lint 规则配置，能 token 化的给 token 清单——规范不是文档，而是可检测的约束。（行为准则中可 lint 化的条目，如"禁止未经说明引入新依赖"，也归入此步。）
-6. **门禁**：与用户确认规范清单，标注"已有共识"vs"新建约束"，并确认是否采用 Karpathy 规则（默认采用，团队有自有规则可关闭）。
+1. **模块边界梳理**：划分“场景外壳 + 共享能力层”，明确哪些模块禁止隐式状态穿透，产出 `docs/conventions/module-boundaries.md`。
+2. **AI 操作边界盘点（治理红线）**：上下文补“看不懂现状”，行为准则补“守不住纪律”，操作边界补第三面——“不能碰什么”。禁区属于“只有人知道”的运行时真相，AI 的角色是逐模块提问引导（“这里有没有看着能改、改了会炸的路径？哪些操作必须先找人确认？”）并格式化落盘，不靠猜。三类边界写入 `docs/conventions/module-boundaries.md` 的“AI 操作边界”节：
+   - **受保护路径**：禁止直接改动（典型候选：已执行的数据库 migration、生成代码、vendored 三方源码、锁文件、CI 配置）
+   - **高危操作确认制**：删文件/删依赖、改生产配置、数据库变更、跳过测试合入——执行前必须人工确认
+   - **禁止命令类**：破坏性脚本、不可逆操作、敏感系统访问
+   各模块特有红线同步收录进该模块 AGENTS.md“注意事项”节，随目录注入而不占根文件预算。盘点提问方法详见 [references/playbooks.md](references/playbooks.md) Playbook 7。
+3. **接口契约提取**：有 codegraph 时基于图谱、无则基于 Grep+Read，梳理模块间通信协议、状态机约定、接口版本，产出 `docs/conventions/contracts.md`。
+4. **编码规范沉淀**：从现存代码中归纳（而非凭空发明）命名约定、目录组织、错误处理模式，产出 `docs/conventions/coding-style.md`。
+5. **代理行为准则落地（Karpathy 编码规则）**：上下文工程解决“AI 看不懂现状”，行为准则解决“AI 守不住纪律”——两者互补，缺一不可。从本 skill 的 [assets/agent-rules.md](assets/agent-rules.md) 取 Karpathy 十条规则，落盘为项目 `docs/conventions/agent-rules.md`，作为 AI 代理行为底线。落地纪律：
+   - **先查后写**：项目若已有等价规则文件（`AGENTS-RULES.md` / `docs/conventions/agent-rules.md` / 根 AGENTS.md 全局规则），**不要覆盖**，改为核对差异、合并补充（沿用本 skill“不就地改非己方文档”的纪律——就地修正非己方产品文档属巡检模式职责，建设期只入报告/新建）。
+   - **保留原文**：默认保留规则正文（权威、可检索）；团队可在各章追加“本项目补充：…”而不要删改原条目。
+   - **速查版入索引**：把十条规则的中文速查精简版写入根 AGENTS.md“全局规则”节，完整版留在 `agent-rules.md`，遵循 Progressive Disclosure（模板见 [references/templates.md](references/templates.md)）。
+6. **规范代码化建议**：能 lint 化的给 lint 规则配置，能 token 化的给 token 清单——规范不是文档，而是可检测的约束。（行为准则中可 lint 化的条目，如“禁止未经说明引入新依赖”，也归入此步。）
+7. **门禁**：与用户确认规范清单（标注“已有共识”vs“新建约束”）、AI 操作边界清单（**误列禁区挡正常开发，漏列禁区就是事故**）、是否采用 Karpathy 规则（默认采用，团队有自有规则可关闭）。
 
 ### Phase 3：L3 知识层 — 构建 AI 可读的上下文体系
 
@@ -111,9 +116,11 @@ description: 为老项目 / 历史遗留（legacy / 屎山）项目系统性构�
    - 模板见 [references/templates.md](references/templates.md)
 3. **补齐四类上下文**：对照 Phase 0 缺口报告，把业务背景、架构契约、运行时真相、技术债务分别落盘到最近的模块 AGENTS.md。
 4. **写入知识落盘规范**（放进根 AGENTS.md）：
-   - 对话中产生的可复用规则/排障结论，必须就近落盘
+   - 对话中产生的可复用规则/排障结论，必须就近落盘，**落盘即标注适用条件**（场景 / 版本 / 截止时间）——为日后淘汰提供依据
    - 索引过期时主动修正
    - 变更驱动更新：架构调整/规范变更/接口升级必须在同一 MR 同步更新 AGENTS.md
+   - 定期淘汰：巡检时清理失效指令（见巡检模式“指令生命周期审计”）——上下文是预算不是仓库，只增不减终将膨胀失效
+   - 任务收尾复盘落盘：为什么成功 / 哪里出错 / 什么方案 / 哪些约束值得保留——只落影响未来决策的经验
 5. **门禁**：请用户补充"只有人知道"的业务背景和运行时真相——这是缺口报告中标红的部分。
 
 ### Phase 4：L4 验证层 — 锁定 AI 产出质量
@@ -131,14 +138,14 @@ description: 为老项目 / 历史遗留（legacy / 屎山）项目系统性构�
 
 ### 收尾：产出验收清单
 
-- [ ] `docs/context-gap-report.md` 缺口诊断报告（巡检模式则为 `docs/context-drift-report.md` 漂移报告）
+- [ ] `docs/context-gap-report.md` 缺口诊断报告（巡检模式则为 `docs/context-drift-report.md` 漂移报告，含过期/缺失/臃肿/健康四类）
 - [ ] codegraph 接入：已装 → `.codegraph/` 索引并用于 L1/L2；未装 → 降级产出 `docs/architecture/dependency-map.md` 手工依赖分析并注明置信度
 - [ ] `openwiki/` 代码 wiki（内置构建器产出：quickstart + 任务路由表 + OKF front matter + 概念关系网；详见 references/code-wiki-builder.md）
 - [ ] 根 AGENTS.md（技术栈+命令+全局规则+索引，~70-90 行，**唯一来源**）+ CLAUDE.md（`@AGENTS.md` 导入桩 <30 行）+ 模块级 AGENTS.md，**且每个有 AGENTS.md 的目录都配一个零内容 CLAUDE.md 指针桩（`@AGENTS.md`）——桩数 = AGENTS.md 数**
 - [ ] 跨模块全局硬知识落 `docs/runtime-truth.md`（决策/运行时真相/已下线/技术债），根索引指向；**无任何关键内容仅存于 CLAUDE.md**
-- [ ] `docs/conventions/` 规范文档组（module-boundaries / contracts / coding-style / **agent-rules** — Karpathy AI 行为准则，并已在根 AGENTS.md 全局规则节接入）
+- [ ] `docs/conventions/` 规范文档组（module-boundaries 含 **AI 操作边界**节 / contracts / coding-style / **agent-rules** — Karpathy AI 行为准则，并已在根 AGENTS.md 全局规则节接入）
 - [ ] 测试骨架 + P0/P1 用例清单 + MR 门禁配置建议
-- [ ] 上下文保鲜机制（落盘规范 + 巡检节奏）已写入根 AGENTS.md
+- [ ] 上下文保鲜机制（落盘+淘汰规范 + 巡检节奏）已写入根 AGENTS.md
 - [ ] 能力阶段评估：当前处于 Readable / Writable / Testable / Autonomous 哪一级
 
 ## 巡检模式（重复运行 / 知识保鲜）
@@ -146,11 +153,12 @@ description: 为老项目 / 历史遗留（legacy / 屎山）项目系统性构�
 上下文的最大敌人是腐烂。当项目已有上下文体系（Phase 0 第 2 步判定）时再次运行本 skill，进入巡检模式——目标不是重建，而是保鲜：
 
 1. **收集变更证据**：`git log --oneline --since="<上次巡检日期>"` 与 `git diff`（无 git 仓库则对比文档与源码的修改时间），圈定变更范围。
-2. **逐项核对文档事实性陈述**：现有 AGENTS.md / CLAUDE.md / docs 中的每条"事实"（架构契约、已下线清单、运行时真相、构建命令、规范条目、索引链接）在当前代码中是否仍成立。特别关注：索引指向的文件是否还存在、"已下线"清单是否有新增、命令是否还能跑。另核对根 AGENTS.md 全局规则节是否仍指向 `agent-rules.md`、该文件是否存在且未被误删。
-3. **产出漂移报告** `docs/context-drift-report.md`：过期项（文档与代码矛盾）/ 缺失项（新代码无文档覆盖）/ 健康项（核对无误），模板见 [references/templates.md](references/templates.md) 末节。
-4. **就地修正**：按"变更驱动更新"原则直接修正文档，报告里记录每处修正的依据（哪个 commit / 哪段代码）。
-5. **代码 wiki 增量刷新**：若项目有 `openwiki/`，按 [references/code-wiki-builder.md](references/code-wiki-builder.md) §9 更新纪律增量刷新——读 `.last-update.json` 取上次 gitHead，`git log <head>..HEAD --name-status` 算变更窗口，建 docs impact plan，只改被波及的页，无变更则 no-op。openwiki CLI 可用时亦可 `openwiki code --update --print` 替代。
-6. **门禁**：涉及"运行时真相"类过期（如某开关线上值变了）无法从代码证实的，列入人工确认清单，不擅自改写。
+2. **逐项核对文档事实性陈述**：现有 AGENTS.md / CLAUDE.md / docs 中的每条“事实”（架构契约、已下线清单、运行时真相、构建命令、规范条目、索引链接）在当前代码中是否仍成立。特别关注：索引指向的文件是否还存在、“已下线”清单是否有新增、命令是否还能跑。另核对根 AGENTS.md 全局规则节是否仍指向 `agent-rules.md`、该文件是否存在且未被误删。
+3. **指令生命周期审计（防臃肿）**：巡检不只查“文档 vs 代码”漂移，还查“文档 vs 文档”膨胀——指令文件只增不减是实测规律（1867 仓库 / 24 万条指令的研究：旧指令几乎从不删除，称之 catastrophic remembering）。对 AGENTS.md 体系逐条四问：被更新的条目取代了吗？对应的代码/环境已变化而失效了吗？是错放根文件的模块细节吗（根 AGENTS.md 超 ~70-90 行预算即信号）？没有适用条件标注、无法判断是否仍适用吗？命中即入报告“臃肿项”。
+4. **产出漂移报告** `docs/context-drift-report.md`：过期项（文档与代码矛盾）/ 缺失项（新代码无文档覆盖）/ 臃肿项（被取代、已失效、该下沉的冗余指令）/ 健康项（核对无误），模板见 [references/templates.md](references/templates.md) 末节。
+5. **就地修正**：按“变更驱动更新”原则直接修正文档，报告里记录每处修正的依据（哪个 commit / 哪段代码）。臃肿项处置 = 删除 / 合并 / 下沉（移至模块 AGENTS.md 或 wiki），同样记录依据。
+6. **代码 wiki 增量刷新**：若项目有 `openwiki/`，按 [references/code-wiki-builder.md](references/code-wiki-builder.md) §9 更新纪律增量刷新——读 `.last-update.json` 取上次 gitHead，`git log <head>..HEAD --name-status` 算变更窗口，建 docs impact plan，只改被波及的页，无变更则 no-op。openwiki CLI 可用时亦可 `openwiki code --update --print` 替代。
+7. **门禁**：涉及“运行时真相”类过期（如某开关线上值变了）无法从代码证实的，列入人工确认清单，不擅自改写；无适用条件标注、判不了死活的历史指令同样标 ⏳ 问人，不擅自删。
 
 巡检模式也应该出现在每个项目的保鲜机制设计中：建议用户把"每月跑一次本 skill 巡检"固化为团队节奏。
 

@@ -112,7 +112,7 @@ git clone https://github.com/jidechao/legacy-context-builder ~/.claude/skills/le
 | 层级 | 解决什么 | 关键动作 |
 |---|---|---|
 | **L1 代码层** | 代码与运行态不一致（幽灵代码噪音） | 死代码三层识别 + 架构瘦身 + 依赖图谱 |
-| **L2 规范层** | 缺乏约束边界（"怎么做"） | 模块边界 + 接口契约 + 编码规范 + **Karpathy AI 行为准则** |
+| **L2 规范层** | 缺乏约束边界（“怎么做”） | 模块边界 + **AI 操作红线** + 接口契约 + 编码规范 + **Karpathy AI 行为准则** |
 | **L3 知识层** | 缺乏 Why（"为什么这么做"） | AGENTS.md 分层体系 + 内置代码 wiki 构建器 |
 | **L4 验证层** | AI 产出不可信（"做得对不对"） | 测试工程分期 + 视觉回归 + MR 智能门禁 |
 
@@ -143,10 +143,11 @@ git clone https://github.com/jidechao/legacy-context-builder ~/.claude/skills/le
 项目**已经**搭过上下文体系，但一直在改，怀疑文档和代码对不上了。这种情况下技能**不重建**，而是：
 
 1. 用 `git log` / 修改时间圈定变更范围
-2. 逐条核对现有文档里的"事实性陈述"（架构契约、已下线清单、构建命令、索引链接）在当前代码里是否还成立
-3. 产出 `docs/context-drift-report.md` 漂移报告（过期项 / 缺失项 / 健康项）
-4. **就地修正**过期文档，每处修正记录依据（哪个 commit / 哪段代码）
-5. 增量刷新代码 wiki（只改被变更波及的页，无变更则不动）
+2. 逐条核对现有文档里的“事实性陈述”（架构契约、已下线清单、构建命令、索引链接）在当前代码里是否还成立
+3. **指令臃肿审计**：清理只增不减的失效指令——被取代、已失效、该下沉的条目（1867 仓库 / 24 万条指令的实测规律：旧指令几乎从不删除）
+4. 产出 `docs/context-drift-report.md` 漂移报告（过期项 / 缺失项 / 臃肿项 / 健康项）
+5. **就地修正**过期文档，每处修正记录依据（哪个 commit / 哪段代码）
+6. 增量刷新代码 wiki（只改被变更波及的页，无变更则不动）
 
 > **建议固化为团队节奏**：每月跑一次巡检。上下文最大的敌人是腐烂。
 
@@ -169,7 +170,7 @@ project-root/
 │   ├── architecture/
 │   │   └── dependency-map.md      # 依赖图谱（codegraph 导出 或 手工归纳）
 │   ├── conventions/
-│   │   ├── module-boundaries.md   # 模块边界：场景外壳 + 共享能力层
+│   │   ├── module-boundaries.md   # 模块边界 + AI 操作红线
 │   │   ├── contracts.md           # 接口契约
 │   │   ├── coding-style.md        # 编码规范（从现存代码归纳，非凭空发明）
 │   │   └── agent-rules.md         # AI 代理行为准则（Karpathy 十条）
@@ -274,10 +275,11 @@ legacy-context-builder/
 
 ## 方法论来源与致谢
 
-本技能的方法论综合提炼自两篇文章：
+本技能的方法论综合提炼自三篇文章：
 
 1. 《从上下文缺口到 AI 可维护性：遗留系统重构的四层上下文工程实践》（玄姐聊AGI，2026-08-08）
 2. 《从胡言乱语到精准改代码：我是如何让 AI 读懂老项目的》（腾讯技术工程，2026-08-07）
+3. 《从 Claude Code、Codex 到真实生产：为什么企业真正缺的不是“更会写代码的 AI”？》（智能体AI，2026-10-16）
 
 详细背景见 [references/methodology.md](references/methodology.md)。代码 wiki 方法论源自 [openwiki](https://github.com/langchain-ai/openwiki)（langchain-ai）。AI 行为准则源自 [Andrej Karpathy](https://karpathy.bearblog.dev/) 总结的 LLM 编码失败模式。
 

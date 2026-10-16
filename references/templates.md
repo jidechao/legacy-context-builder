@@ -11,7 +11,7 @@ project-root/
 │   ├── context-gap-report.md    # 上下文缺口诊断报告（Phase 0 产出）
 │   ├── runtime-truth.md         # 跨模块硬知识：关键决策/运行时真相/已下线/技术债
 │   ├── conventions/
-│   │   ├── module-boundaries.md # 模块边界：场景外壳 + 共享能力层
+│   │   ├── module-boundaries.md # 模块边界：场景外壳 + 共享能力层 + AI 操作红线
 │   │   ├── contracts.md         # 接口契约：通信协议、状态机、版本演进
 │   │   ├── coding-style.md      # 编码规范：命名、目录、错误处理模式
 │   │   └── agent-rules.md       # AI 代理行为准则（Karpathy 十条）
@@ -57,7 +57,7 @@ project-root/
 - `docs/runtime-truth.md`：跨模块硬知识（关键决策/运行时真相/已下线清单/技术债）
 - `docs/conventions/coding-style.md`：编码规范、命名约定、目录组织原则
 - `docs/conventions/contracts.md`：模块间接口契约与版本兼容策略
-- `docs/conventions/module-boundaries.md`：场景外壳 / 共享能力层边界
+- `docs/conventions/module-boundaries.md`：场景外壳 / 共享能力层边界 / AI 操作红线（受保护路径与禁改清单）
 - `docs/conventions/agent-rules.md`：AI 代理行为准则（Karpathy 十条）
 - `docs/testing.md`：测试策略、Mock 规范、fixtures 说明
 
@@ -87,6 +87,9 @@ project-root/
 - 对话中出现的可复用规则/兼容性结论/排障结论/项目知识，必须就近落盘到对应模块 AGENTS.md，并同步更新根索引（以模块内容为准）
 - 发现索引内容过期或不准确时，主动修正
 - 架构调整/规范变更/接口升级，必须在同一 MR 中同步更新对应 AGENTS.md
+- 落盘即标注适用条件（场景 / 版本 / 截止时间），为日后淘汰提供依据
+- 定期淘汰：巡检时清理失效指令（被取代 / 已失效 / 该下沉）——上下文是预算，不是仓库；只增不减的膨胀终将淹没真正重要的信息
+- 任务收尾复盘落盘：为什么成功 / 哪里出错 / 什么方案 / 哪些约束值得保留——只落影响未来决策的经验
 ```
 
 ## CLAUDE.md 模板（导入桩，< 30 行）
@@ -149,9 +152,34 @@ project-root/
 ## 历史决策与排障记录
 - <日期>：<决策/结论 + 依据>（对话中沉淀的可复用知识追加在这里）
 
-## 注意事项（AI 易踩坑）
+## 注意事项（AI 易踩坑 + 操作红线）
 - <易误判点，如"看似无引用实则为反射调用">
+- <本模块操作红线：禁改路径 / 高危确认操作 / 禁止命令——与 `docs/conventions/module-boundaries.md` 的“AI 操作边界”节保持同源>
 ```
+
+## docs/conventions/module-boundaries.md 的“AI 操作边界”节（模板）
+
+> 上下文补“看不懂现状”，行为准则补“守不住纪律”，本节补第三面——“不能碰什么”。边界是“只有人知道”的运行时真相：AI 逐模块提问引导，人确认，AI 落盘。全局边界放这里；模块特有红线就近放进该模块 AGENTS.md“注意事项”，随目录注入而不占根文件预算。
+
+```markdown
+## AI 操作边界（治理红线）
+
+### 受保护路径（禁改）
+| 路径 | 原因 |
+|---|---|
+| prisma/migrations/ | 已执行的数据库迁移，改动即数据事故 |
+| src/generated/ | 代码生成器产物，改动会被下次生成覆盖 |
+
+### 高危操作（执行前必须人工确认）
+- 删除文件 / 删除依赖
+- 修改 `.env*` 或生产环境配置
+- 数据库 schema 变更、任何不可逆脚本
+
+### 禁止命令
+- <如 force push、跳过测试合入、直连生产库执行写操作>
+```
+
+> 巡检时边界条目同样参与臃肿审计：业务下线、流程变更后，失效的禁区条目应删除——否则红线自己也会变成噪音。
 
 ## docs/conventions/agent-rules.md（AI 代理行为准则）
 
@@ -241,7 +269,7 @@ sequenceDiagram
 ## 知识保鲜机制
 
 1. **变更驱动更新**：任何架构调整、规范变更、接口升级，同一 MR 内同步更新 AGENTS.md——写进 MR 检查清单。
-2. **定期巡检（上下文漂移报告）**：每月运行一次扫描——对比近期代码变更与各 AGENTS.md 内容，产出差异报告，人工确认后批量修正；同时按 [code-wiki-builder.md](code-wiki-builder.md) §9 增量刷新 `openwiki/` 代码 wiki（读 `.last-update.json` 取 gitHead → `git log <head>..HEAD` 算变更窗口 → docs impact plan，无变更则 no-op）。openwiki CLI 可用时亦可 `openwiki code --update --print` 替代并自动开文档 PR。
+2. **定期巡检（上下文漂移报告）**：每月运行一次扫描——对比近期代码变更与各 AGENTS.md 内容，产出差异报告（含指令臃肿审计：删除/合并/下沉失效条目），人工确认后批量修正；同时按 [code-wiki-builder.md](code-wiki-builder.md) §9 增量刷新 `openwiki/` 代码 wiki（读 `.last-update.json` 取 gitHead → `git log <head>..HEAD` 算变更窗口 → docs impact plan，无变更则 no-op）。openwiki CLI 可用时亦可 `openwiki code --update --print` 替代并自动开文档 PR。
 3. **就近落盘**：对话产生的知识落盘到离它最近的模块文件，而不是根目录。
 
 ## 上下文漂移报告模板（巡检模式产出）
@@ -263,6 +291,16 @@ sequenceDiagram
 | # | 代码位置 | 变更内容 | 建议落盘位置 |
 |---|---|---|---|
 | 1 | src/coupon/ | 新增优惠券模块，无 AGENTS.md | src/coupon/AGENTS.md |
+
+## 臃肿项（指令生命周期审计：只增不减的防腐）
+| # | 位置 | 条目摘要 | 臃肿原因 | 处置 |
+|---|---|---|---|---|
+| 1 | AGENTS.md:34 | “不要用 npm”（早统一 pnpm 且已有规范条目） | 被取代 | ✅ 已删除（依据 coding-style.md pnpm 条） |
+| 2 | AGENTS.md:58 | 一段部署参数细节 | 该下沉 | ✅ 移至 docs/ops.md |
+| 3 | src/core/AGENTS.md | “改 collabora 前先找 XX 确认” | 已失效（模块已下线） | ✅ 已删除（依据 runtime-truth.md 下线清单） |
+| 4 | AGENTS.md:70 | “这个模块暂时别动”（无适用条件标注） | 无法判定 | ⏳ 人工确认 |
+
+（臃肿原因四类：**被取代** / **已失效**（对应代码、环境或流程已变）/ **该下沉**（模块细节错放根文件，根 AGENTS.md 超 ~70-90 行预算即信号）/ **无法判定**（无适用条件标注 → 标 ⏳ 问人，不擅自删）。处置 = 删除 / 合并 / 下沉。）
 
 ## 健康项（核对无误）
 - docs/conventions/contracts.md：接口契约 8 条全部仍成立
